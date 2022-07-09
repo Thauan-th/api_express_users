@@ -1,5 +1,16 @@
 const error = require('./error')
 const nedb = require('nedb')
+const jwt = require('jsonwebtoken')
+
+//inital config jwt 
+const dotenv = require('dotenv')
+
+dotenv.config()
+
+function generateAccessToken(username) {
+  return jwt.sign(username, process.env.TOKEN_SECRET, { expiresIn: '1800s' });
+}
+
 
 //simple configuration
 const db = new nedb({
@@ -33,11 +44,13 @@ const saveUser = (req, res) => {
     req_success(res, { message: 'user created successfully' }, 201)
   })
 }
+// 'post /login'
 const loginUser = (req, res) => {
   const { user } = req.body
+  const token = generateAccessToken({ username: user.email });
   db.findOne({ email: user.email, senha: user.senha }).exec((err, usr) => {
     if (err) return error(err, res)
-    if (usr) req_success(res, { message: 'user logged' })
+    if (usr) req_success(res, { message: token })
     return res.json({ message: 'user not found' })
   })
 }
